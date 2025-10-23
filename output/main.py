@@ -1,7 +1,7 @@
 # Name: Hiram Williams
 # Student ID: 26065490
 # Email: hiramw@umich.edu 
-# AI Tools Used: Microsoft Copilot for debugging and help with questions
+# AI Tools Used: Microsoft Copilot for debugging and help with questions when my code was not working as expected.
 
 
 import csv
@@ -107,19 +107,7 @@ def run_tests(data):
 
    
 
-data = load_data(csv_filepath())
-male_pct = calculate_male_percentage(data)
-species_yield = calculate_species_yield(data)
-
-# Around half the penguins are male; expect between 40% and 60%
-assert 40 <= male_pct <= 60, f"Unexpected male percentage: {male_pct}"
-
-# Expect Gentoo to have the highest % >5000 g, Adelie the lowest
-assert "Gentoo" in species_yield and species_yield["Gentoo"] > 40
-assert "Adelie" in species_yield and species_yield["Adelie"] < 10
-assert "Chinstrap" in species_yield
-
-print("All tests passed.")
+# Note: No top-level execution here so this module can be imported by tests.
 def write_results_json(results, filename):
     """Write results dict to filename as JSON."""
     with open(filename, "w") as f:
@@ -185,9 +173,18 @@ def write_results(results, filename):
     """
     Write the results dictionary to a file, one key-value pair per line.
     """
+    def format_value(v):
+        if isinstance(v, dict):
+            # pretty-print nested dicts
+            lines = []
+            for k, val in v.items():
+                lines.append(f"  {k}: {val}")
+            return "\n" + "\n".join(lines)
+        return str(v)
+
     with open(filename, "w") as f:
         for key, value in results.items():
-            f.write(f"{key}: {value}\n")
+            f.write(f"{key}: {format_value(value)}\n")
 
 if __name__ == "__main__":
     main()
