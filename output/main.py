@@ -6,6 +6,10 @@
 
 import csv
 import os
+import sys
+import argparse
+import json
+import logging
 
 def csv_filepath():
     """Return path to penguins.csv. Prefer local data/penguins.csv, fall back to ../Project/data/penguins.csv."""
@@ -116,27 +120,66 @@ assert "Adelie" in species_yield and species_yield["Adelie"] < 10
 assert "Chinstrap" in species_yield
 
 print("All tests passed.")
+def write_results_json(results, filename):
+    """Write results dict to filename as JSON."""
+    with open(filename, "w") as f:
+        json.dump(results, f, indent=2)
 
-def main():
-    data = load_data(csv_filepath())
+
+def parse_args(argv=None):
+    p = argparse.ArgumentParser(description="Compute penguin statistics and write results.")
+    p.add_argument("--data", help="Path to penguins.csv (overrides default lookup)")
+    # default outdir: repo-level 'output' directory (one level up from this script)
+    default_out = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "output"))
+    p.add_argument("--outdir", default=default_out,
+                   help=f"Directory to write results (default: {default_out})")
+    p.add_argument("--no-tests", action="store_true", help="Do not run internal tests")
+    return p.parse_args(argv)
+
+
+def main(argv=None):
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+    args = parse_args(argv)
+
+    # determine CSV path
+    data_path = args.data if args.data else csv_filepath()
+    if not os.path.exists(data_path):
+        logging.error("Data file not found: %s", data_path)
+        sys.exit(1)
+
+    data = load_data(data_path)
 
     avg_flipper = calculate_avg_flipper_length(data)
     avg_mass = calculate_avg_body_mass(data)
 
-    
     # SECTION FOR DONOVAN
     male_pct = calculate_male_percentage(data)
     species_yield_pct = calculate_species_yield(data)
-        
+
     results = {
         "Average Flipper Length (mm)": avg_flipper,
         "Average Body Mass (g)": avg_mass,
         "Male Percentage": male_pct,
-         "Species Yield ": species_yield_pct
+        "Species Yield": species_yield_pct,
+        "Data File": os.path.abspath(data_path),
     }
-        
-    write_results(results, "output/results.txt")
-    run_tests(data)
+
+    outdir = args.outdir
+    os.makedirs(outdir, exist_ok=True)
+    txt_path = os.path.join(outdir, "results.txt")
+    json_path = os.path.join(outdir, "results.json")
+
+    write_results(results, txt_path)
+    write_results_json(results, json_path)
+
+    logging.info("Wrote results to %s and %s", txt_path, json_path)
+
+    if not args.no_tests:
+        try:
+            run_tests(data)
+        except AssertionError as e:
+            logging.error("Tests failed: %s", e)
+            sys.exit(2)
 
 def write_results(results, filename):
     """

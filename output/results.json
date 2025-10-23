@@ -1,0 +1,11 @@
+{
+  "Average Flipper Length (mm)": 200.92,
+  "Average Body Mass (g)": 4201.75,
+  "Male Percentage": 50.45,
+  "Species Yield": {
+    "Adelie": 0.0,
+    "Gentoo": 49.59,
+    "Chinstrap": 0.0
+  },
+  "Data File": "/Users/hiramwilliams/fall25-project1-Hiramw2-1/Project/data/penguins.csv"
+}
