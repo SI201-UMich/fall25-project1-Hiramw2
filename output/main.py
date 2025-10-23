@@ -187,4 +187,9 @@ def write_results(results, filename):
             f.write(f"{key}: {format_value(value)}\n")
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+        print("All tests passed.")
+    except AssertionError as e:
+        print(f"Test failed: {e}")
+        sys.exit(1)
